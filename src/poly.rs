@@ -92,7 +92,8 @@ impl Polynomial {
         .zip(srs_1.iter())
         .fold(G1::default(), 
             |acc, (coeff, srs) |  
-                acc + srs * coeff).to_affine()
+                acc + srs * coeff)
+        .to_affine()
     }
 
     /// Makes the commitment for the given polynomial and SRS
@@ -102,7 +103,8 @@ impl Polynomial {
         .zip(srs_2.iter())
         .fold(G2::default(), 
             |acc, (coeff, srs) |  
-                acc + srs * coeff).to_affine()
+                acc + srs * coeff)
+        .to_affine()
     }
 }
 
