@@ -159,35 +159,131 @@ impl Mul for Polynomial {
 }
 
 
-// f(x) = (x - 2)(x - 3) = roots are 2, 3
-// f(a) = 0, a = root of p
-// f(x) = 1*x^2 + 2*x^1 + 1*x^0
-// z = 5
-// f(z) = 1*25 + 2*5 + 1 = 36 = y
-// q(x) = (f(x) - y) / (x - z)
-//      = (1*x^2 + 2*x^1 + 1 - 36) / (x - 5)
-//      = (1*x^2 + 2*x^1 - 35) / (x - 5)
-//      = (x + 7)(x - 5) / (x - 5)
-//      = (x + 7)
-/// Calculates quotient using long division algorithm
 impl Div for Polynomial {
     type Output = Self;
+
+
+    // test passes 
     fn div(self, rhs: Self) -> Self {
-        // Here assigning it in reverse order and at the end of the function it will be reverted.
-        let coefficients: Vec<Fr> = self.coefficients.iter().cloned().rev().collect();
+        let mut dividend = self.coefficients.clone();
+        let divisor = rhs.coefficients.clone();
 
-        let mut quotient = (0..coefficients.len() - 2)
-        .fold(vec![coefficients[0]], |mut acc, i | {
-             let last = acc.last().unwrap() ;
-             let next = coefficients[i+1] - (last * rhs.coefficients[0]);
-             acc.push(next);
-             acc
-        });
+        let mut quotient = vec![Fr::ZERO; dividend.len() - divisor.len() + 1];
 
-        // Revert quotient to correct positioning for the whole algorithm
-        quotient.reverse();
+        // Perform polynomial division
+        for i in (0..=dividend.len() - divisor.len()).rev() {
+            let coeff = dividend[i + divisor.len() - 1] * divisor.last().unwrap().invert().unwrap();
+            quotient[i] = coeff;
+
+            for j in 0..divisor.len() {
+                dividend[i + j] -= coeff * divisor[j];
+            }
+        }
+
+        // Remove trailing zeros from quotient
+         while let Some(c) = quotient.last() {
+            if c.is_zero_vartime() {
+                quotient.pop();
+            } else {
+                break;
+            }
+        }
 
         Polynomial::new(quotient)
-
     }
+}
+
+
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_polynomial_new() {
+        let coeffs = vec![Fr::from(1u64), Fr::from(2u64), Fr::from(3u64)];
+        let poly = Polynomial::new(coeffs.clone());
+        assert_eq!(poly.coefficients, coeffs);
+    }
+
+    #[test]
+    fn test_polynomial_random() {
+        let poly = Polynomial::random(3);
+        assert_eq!(poly.coefficients.len(), 3);
+    }
+
+    #[test]
+    fn test_polynomial_eval() {
+        let coeffs = vec![Fr::from(2), Fr::from(5), Fr::from(6)]; // 2 + 5x + 6x^2
+        let poly = Polynomial::new(coeffs);
+        let x = Fr::from(1); // Test at x = 1
+        let result = poly.eval(&x);
+        let expected = Fr::from(13); // 2 + 5*1 + 6*1^2
+        assert_eq!(result, expected);
+    }
+
+    #[test]
+    fn test_polynomial_addition() {
+        let poly1 = Polynomial::new(vec![Fr::from(1), Fr::from(2)]); // 1 + 2x
+        let poly2 = Polynomial::new(vec![Fr::from(3), Fr::from(4)]); // 3 + 4x
+        let result = poly1 + poly2;
+        assert_eq!(result.coefficients, vec![Fr::from(4), Fr::from(6)]); // 4 + 6x
+    }
+
+    #[test]
+    fn test_polynomial_subtraction() {
+        let poly1 = Polynomial::new(vec![Fr::from(5), Fr::from(7)]); // 5 + 7x
+        let poly2 = Polynomial::new(vec![Fr::from(3), Fr::from(4)]); // 3 + 4x
+        let result = poly1 - poly2;
+        assert_eq!(result.coefficients, vec![Fr::from(2), Fr::from(3)]); // 2 + 3x
+    }
+
+    #[test]
+    fn test_polynomial_multiplication() {
+        let poly1 = Polynomial::new(vec![Fr::from(1), Fr::from(1)]); // 1 + x
+        let poly2 = Polynomial::new(vec![Fr::from(1), Fr::from(1)]); // 1 + x
+        let result = poly1 * poly2;
+        assert_eq!(result.coefficients, vec![Fr::from(1), Fr::from(2), Fr::from(1)]); // 1 + 2x + x^2
+    }
+
+    #[test]
+    fn test_polynomial_division1() {
+        let poly1 = Polynomial::new(vec![Fr::from(1), Fr::from(0), Fr::from(1).neg()]); // x^2 + (field order - 1)
+        let poly2 = Polynomial::new(vec![Fr::from(1), Fr::from(1).neg()]); // x + (field order - 1)
+
+        let result = poly1 / poly2;
+
+        assert_eq!(result.coefficients, vec![Fr::from(1), Fr::from(1)]); // x + 1
+    }
+
+    #[test]
+    fn test_polynomial_division2() {
+        // Dividend: x^2 + 3x + 2
+        let poly1 = Polynomial::new(vec![Fr::from(2), Fr::from(3), Fr::from(1)]);
+
+        // Divisor: x + 1
+        let poly2 = Polynomial::new(vec![Fr::from(1), Fr::from(1)]);
+
+        // Expected Quotient: x + 2
+        let expected_quotient = Polynomial::new(vec![Fr::from(2), Fr::from(1)]);
+
+        // Perform long division
+        let result = poly1 / poly2;
+
+        // Check if the result matches the expected quotient
+        assert_eq!(result.coefficients, expected_quotient.coefficients);
+    }
+
+    #[test]
+    fn test_polynomial_lagrange() {
+        let domain = vec![Fr::from(0), Fr::from(1), Fr::from(2)];
+        let values = vec![Fr::from(2), Fr::from(5), Fr::from(10)];
+        let poly = Polynomial::lagrange(values.clone(), domain.clone());
+
+        for (i, x) in domain.iter().enumerate() {
+            assert_eq!(poly.eval(x), values[i]);
+        }
+    }
+
+    // TODO tesst commitments
 }
