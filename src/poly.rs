@@ -19,7 +19,7 @@ pub struct Polynomial {
 
 // f(x)  =  2 * x^0 + 5 * x^1 + 6 * x^2
 // coeff = [2, 5, 6]
-// p(1)  =  2 * 1   + 5 * 1   + 6 * 1
+// f(1)  =  2 * 1   + 5 * 1   + 6 * 1
 impl Polynomial {
     /// Creates a new polynomial from given vector
     pub fn new(coefficients: Vec<Fr>) -> Self {
@@ -32,9 +32,7 @@ impl Polynomial {
         let coefficients: Vec<Fr> = (0..length)
         .map(|_| Fr::random(rng.clone()))
         .collect();
-        Self {
-            coefficients
-        }
+        coefficients.into()
     }
 
     /// Evaluates polynomial on the given value
@@ -50,17 +48,16 @@ impl Polynomial {
     /// This function will build a polynomial from values and given domain.
     /// Will use lagrange interpolation.
     pub fn lagrange(values: Vec<Fr>, domain: Vec<Fr>) -> Self {
-        let mut lagrange_polynomial = Polynomial::new(vec![Fr::ZERO]);
+        let mut lagrange_polynomial = vec![Fr::ZERO].into();
         for i in 0..values.len() {
-            let mut mul_numerator = Polynomial::new(vec![Fr::ONE]);
+            let mut mul_numerator : Polynomial = vec![Fr::ONE].into();
             let mut mul_denominator = Fr::ONE;
 
             for j in 0..values.len() {
                 if i == j {
                     continue;
                 }
-                let numerator =
-                    Polynomial::new(vec![Fr::from_u128(j.try_into().unwrap()).neg(), Fr::ONE]);
+                let numerator: Polynomial = vec![Fr::from_u128(j.try_into().unwrap()).neg(), Fr::ONE].into();
                 let denominator = domain[i] - domain[j];
                 mul_numerator = mul_numerator * numerator.clone();
                 mul_denominator *= denominator;
@@ -195,7 +192,11 @@ impl Div for Polynomial {
     }
 }
 
-
+impl From<Vec<Fr>> for Polynomial {
+    fn from(vec: Vec<Fr>) -> Self {
+        Self::new(vec)
+    }
+}
 
 #[cfg(test)]
 mod tests {
@@ -204,7 +205,7 @@ mod tests {
     #[test]
     fn test_polynomial_new() {
         let coeffs = vec![Fr::from(1u64), Fr::from(2u64), Fr::from(3u64)];
-        let poly = Polynomial::new(coeffs.clone());
+        let poly: Polynomial = coeffs.clone().into();
         assert_eq!(poly.coefficients, coeffs);
     }
 
@@ -216,8 +217,7 @@ mod tests {
 
     #[test]
     fn test_polynomial_eval() {
-        let coeffs = vec![Fr::from(2), Fr::from(5), Fr::from(6)]; // 2 + 5x + 6x^2
-        let poly = Polynomial::new(coeffs);
+        let poly: Polynomial = vec![Fr::from(2), Fr::from(5), Fr::from(6)].into(); // 2 + 5x + 6x^2
         let x = Fr::from(1); // Test at x = 1
         let result = poly.eval(&x);
         let expected = Fr::from(13); // 2 + 5*1 + 6*1^2
@@ -226,16 +226,16 @@ mod tests {
 
     #[test]
     fn test_polynomial_addition() {
-        let poly1 = Polynomial::new(vec![Fr::from(1), Fr::from(2)]); // 1 + 2x
-        let poly2 = Polynomial::new(vec![Fr::from(3), Fr::from(4)]); // 3 + 4x
+        let poly1: Polynomial = vec![Fr::from(1), Fr::from(2)].into(); // 1 + 2x
+        let poly2 = vec![Fr::from(3), Fr::from(4)].into(); // 3 + 4x
         let result = poly1 + poly2;
         assert_eq!(result.coefficients, vec![Fr::from(4), Fr::from(6)]); // 4 + 6x
     }
 
     #[test]
     fn test_polynomial_subtraction() {
-        let poly1 = Polynomial::new(vec![Fr::from(5), Fr::from(7)]); // 5 + 7x
-        let poly2 = Polynomial::new(vec![Fr::from(3), Fr::from(4)]); // 3 + 4x
+        let poly1: Polynomial = vec![Fr::from(5), Fr::from(7)].into(); // 5 + 7x
+        let poly2 = vec![Fr::from(3), Fr::from(4)].into(); // 3 + 4x
         let result = poly1 - poly2;
         assert_eq!(result.coefficients, vec![Fr::from(2), Fr::from(3)]); // 2 + 3x
     }
@@ -261,13 +261,13 @@ mod tests {
     #[test]
     fn test_polynomial_division2() {
         // Dividend: x^2 + 3x + 2
-        let poly1 = Polynomial::new(vec![Fr::from(2), Fr::from(3), Fr::from(1)]);
+        let poly1: Polynomial = vec![Fr::from(2), Fr::from(3), Fr::from(1)].into();
 
         // Divisor: x + 1
-        let poly2 = Polynomial::new(vec![Fr::from(1), Fr::from(1)]);
+        let poly2 = vec![Fr::from(1), Fr::from(1)].into();
 
         // Expected Quotient: x + 2
-        let expected_quotient = Polynomial::new(vec![Fr::from(2), Fr::from(1)]);
+        let expected_quotient: Polynomial = vec![Fr::from(2), Fr::from(1)].into();
 
         // Perform long division
         let result = poly1 / poly2;

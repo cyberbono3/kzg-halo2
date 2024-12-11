@@ -41,3 +41,5 @@ pub fn trusted_setup_generator(length: usize) -> SRSParams {
         g2: trusted_setup_g2,
     }
 }
+
+
