@@ -377,53 +377,33 @@ mod tests {
         );
     }
 
-    // #[test]
-    // fn test_add_assign_different_length_rhs_longer() {
-    //     let mut poly1 = Polynomial {
-    //         coefficients: Cow::Owned(vec![Fr::from_u128(1), Fr::from_u128(2)]),
-    //     };
+    #[test]
+    fn test_add_assign_different_length_rhs_longer() {
+        let mut poly1 = poly_vec![1,2];
+    
 
-    //     let poly2 = Polynomial {
-    //         coefficients: Cow::Owned(vec![Fr::from_u128(3), Fr::from_u128(4), Fr::from_u128(5)]),
-    //     };
+        let poly2 = poly_vec![3,4,5];
 
-    //     poly1 += poly2;
+        poly1 += poly2;
 
-    //     assert_eq!(
-    //         poly1.coefficients.as_ref(),
-    //         &[
-    //             Fr::from_u128(4), // 1 + 3
-    //             Fr::from_u128(6), // 2 + 4
-    //             Fr::from_u128(5), // 0 + 5
-    //         ]
-    //     );
-    // }
+        assert_eq!(
+            poly1,
+            poly_vec![4,6,5]
+        );
+    }
 
-    // #[test]
-    // fn test_add_assign_different_length_lhs_longer() {
-    //     let mut poly1 = Polynomial {
-    //         coefficients: Cow::Owned(vec![
-    //             Fr::from_u128(2),
-    //             Fr::from_u128(3),
-    //             Fr::from_u128(4),
-    //         ]),
-    //     };
+    #[test]
+    fn test_add_assign_different_length_lhs_longer() {
+        let mut poly1 = poly_vec![2,3,4];
 
-    //     let poly2 = Polynomial {
-    //         coefficients: Cow::Owned(vec![Fr::from_u128(1), Fr::from_u128(1)]),
-    //     };
+        let poly2 = poly_vec![1,1];
+        poly1 += poly2;
 
-    //     poly1 += poly2;
-
-    //     assert_eq!(
-    //         poly1.coefficients.as_ref(),
-    //         &[
-    //             Fr::from_u128(3), // 2 + 1
-    //             Fr::from_u128(4), // 3 + 1
-    //             Fr::from_u128(4), // 4 + 0
-    //         ]
-    //     );
-    // }
+        assert_eq!(
+            poly1,
+            poly_vec![3,4,4]
+        );
+    }
 
     // TODO tesst commitments
 }
