@@ -167,6 +167,15 @@ impl<'coeffs> Polynomial<'coeffs> {
     }
 }
 
+impl<'coeffs> PartialEq for Polynomial<'coeffs>{
+    fn eq(&self, other: &Polynomial<'coeffs>) -> bool {
+        self.coefficients
+            .iter()
+            .zip(other.coefficients.iter())
+            .all(|(x, y)| x == y)
+    }
+}
+
 impl<'coeffs> Add for Polynomial<'coeffs> {
     type Output = Self;
     fn add(self, rhs: Self) -> Self {
@@ -324,23 +333,23 @@ mod tests {
         assert_eq!(result.coefficients, fr_vec![1, 1]); // x + 1
     }
 
-    // #[test]  TODO fix it
-    // fn test_polynomial_division2() {
-    //     // Dividend: x^2 + 3x + 2
-    //     let poly1: Polynomial = fr_vec![3,2,1].into();
+    #[test]  
+    fn test_polynomial_division2() {
+        // Dividend: x^2 + 3x + 2
+        let poly1: Polynomial = fr_vec![2,3,1].into();
 
-    //     // Divisor: x + 1
-    //     let poly2 = fr_vec![1,1].into();
+        // Divisor: x + 1
+        let poly2 = fr_vec![1,1].into();
 
-    //     // Expected Quotient: x + 2
-    //     let expected_quotient: Polynomial = fr_vec![2,1].into();
+        // Expected Quotient: x + 2
+        let expected_quotient: Polynomial = fr_vec![2,1].into();
 
-    //     // Perform long division
-    //     let result = poly1 / poly2;
+        // Perform long division
+        let result = poly1 / poly2;
 
-    //     // Check if the result matches the expected quotient
-    //     assert_eq!(result.coefficients, expected_quotient.coefficients);
-    // }
+        // Check if the result matches the expected quotient
+        assert_eq!(result, expected_quotient);
+    }
 
     #[test]
     fn test_polynomial_lagrange() {
