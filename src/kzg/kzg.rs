@@ -42,7 +42,6 @@ pub fn verify(proof: Proof, challenge: Fr, params: &SRSParams) -> bool {
     let challenge_g2 = generator_g2 * challenge;
     let s_sub_challenge = params.g2[1] - challenge_g2;
 
-    
     let pair_1 = proof
         .quotient_commitment
         .pairing_with(&s_sub_challenge.to_affine());

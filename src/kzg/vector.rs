@@ -10,28 +10,20 @@ use halo2::{
     },
 };
 
-use crate::kzg::kzg::Proof;
 use crate::fr_vec;
+use crate::kzg::kzg::Proof;
 use crate::{poly::Polynomial, srs::SRSParams};
-
-
-
 
 pub fn prove(vector: &[Fr], challenge: &[Fr], params: &SRSParams) -> Proof {
     // Constructing vector polynomial with lagrange interpolation
-    let polynomial = Polynomial::lagrange(
-        vector,
-        &fr_vec![0,1,2,3],
-    );
+    let polynomial = Polynomial::lagrange(vector, &fr_vec![0, 1, 2, 3]);
 
     let numerator = polynomial.clone() - Polynomial::lagrange(vector, challenge);
 
     // Constructing zero polynomial Z(x)
     let mut zero_polynomial = Polynomial::new(vec![Fr::ONE]);
     for items in challenge.iter() {
-        
-        zero_polynomial =
-            zero_polynomial * Polynomial::new(vec![-items, Fr::ONE]);
+        zero_polynomial = zero_polynomial * Polynomial::new(vec![-items, Fr::ONE]);
     }
     let denominator = zero_polynomial;
     // Calculating Q(x) or aka quotient polynomial
@@ -60,8 +52,7 @@ pub fn verify(proof: Proof, vector: &[Fr], challenge: &[Fr], params: &SRSParams)
     // Constructing zero polynomial Z(x)
     let mut zero_polynomial = Polynomial::new(vec![Fr::ONE]);
     for items in challenge.iter() {
-        zero_polynomial =
-            zero_polynomial * vec![-items, Fr::ONE].into();
+        zero_polynomial = zero_polynomial * vec![-items, Fr::ONE].into();
     }
     let zero_polynomial_commitment = zero_polynomial.commitment_g2(&params.g2);
 
@@ -92,36 +83,33 @@ pub fn verify(proof: Proof, vector: &[Fr], challenge: &[Fr], params: &SRSParams)
 
 #[cfg(test)]
 mod tests {
-    use crate::srs::trusted_setup_generator;
     use super::*;
+    use crate::srs::trusted_setup_generator;
 
     use halo2::{
         arithmetic::Field,
         halo2curves::{bn256::Fr, ff::PrimeField},
     };
 
-    // #[test] TODO fix it
-    // fn kzg_vector_test() {
-    //     // Constructing Structured Reference String that is suitable to the given polynomial
-    //     let k = 123;
-    //     let params = trusted_setup_generator(k);
-    //     // Vector that is known to prover and verifier
-    //     let vector = vec![
-    //         Fr::ONE,
-    //         Fr::ONE + Fr::ONE + Fr::ONE + Fr::ONE + Fr::ONE,
-    //         Fr::ONE + Fr::ONE,
-    //         Fr::ONE + Fr::ONE + Fr::ONE,
-    //     ];
+    #[test] //TODO fix it
+    fn kzg_vector_test() {
+        // Constructing Structured Reference String that is suitable to the given polynomial
+        let k = 123;
+        let params = trusted_setup_generator(k);
+        // Vector that is known to prover and verifier
+        let vector = vec![
+            Fr::ONE,
+            Fr::ONE + Fr::ONE + Fr::ONE + Fr::ONE + Fr::ONE,
+            Fr::ONE + Fr::ONE,
+            Fr::ONE + Fr::ONE + Fr::ONE,
+        ];
 
-    //     // Creating vector indexes as challanges known by both prover and the verifier
-    //     let challenge = fr_vec![0,1,2,3];
-       
-    //     dbg!("before prove");
-    //     let proof = prove(&vector, &challenge, &params);
-    //     dbg!("prove");
-    //     let res = verify(proof, &vector, &challenge, &params);
-    //     dbg!("verify");
+        // Creating vector indexes as challanges known by both prover and the verifier
+        let challenge = fr_vec![0, 1, 2, 3];
 
-    //     assert!(res);
-    // }
+        let proof = prove(&vector, &challenge, &params);
+        let res = verify(proof, &vector, &challenge, &params);
+
+        assert!(res);
+    }
 }
