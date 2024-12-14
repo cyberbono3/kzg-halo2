@@ -362,24 +362,20 @@ mod tests {
         }
     }
 
-    // #[test]
-    // fn test_add_assign_same_length() {
-    //     let mut poly1: Polynomial = fr_vec![1, 2, 3].into();
+    #[test]
+    fn test_add_assign_same_length() {
+        let mut poly1 = poly_vec![1, 2, 3];
       
 
-    //     let poly2 = fr_vec![4, 5, 6].into();
+        let poly2 = poly_vec![4, 5, 6];
 
-    //     poly1 += poly2;
+        poly1 += poly2;
 
-    //     assert_eq!(
-    //         poly1.coefficients.as_ref(),
-    //         &[
-    //             Fr::from_u128(5), // 1 + 4
-    //             Fr::from_u128(7), // 2 + 5
-    //             Fr::from_u128(9), // 3 + 6
-    //         ]
-    //     );
-    // }
+        assert_eq!(
+            poly1,
+            poly_vec![5,7,9]
+        );
+    }
 
     // #[test]
     // fn test_add_assign_different_length_rhs_longer() {
