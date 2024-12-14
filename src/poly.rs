@@ -16,6 +16,7 @@ use std::borrow::Cow;
 /// # Example
 /// ```
 /// # use halo2::halo2curves::bn256::Fr;
+/// # use halo2_project::fr_vec;
 /// let vector = fr_vec![0, 1, 2, 3];
 /// assert_eq!(vector,vec![Fr::from(0),Fr::from(1),Fr::from(2),Fr::from(3)]);
 /// ```
@@ -31,11 +32,13 @@ macro_rules! fr_vec {
 /// # Example
 /// ```
 /// # use halo2::halo2curves::bn256::Fr;
-/// # use crate::Polynomial;
+/// # use halo2_project::poly::Polynomial;
+/// # use halo2_project::poly_vec;
+/// # use halo2_project::fr_vec;
 ///
 /// let poly: Polynomial = poly_vec![1, 2, 3];
 /// assert_eq!(
-///     poly.coefficients,
+///     poly.coefficients(),
 ///     vec![
 ///         Fr::from(1),
 ///         Fr::from(2),
@@ -78,6 +81,11 @@ impl<'coeffs> Polynomial<'coeffs> {
     /// Creates a mutable reference to Polynomial coefficients to mutate them inplace
     pub fn coefficients_mut(&mut self) -> &mut Vec<Fr> {
         self.coefficients.to_mut()
+    }
+
+
+     pub fn coefficients(&self) -> Vec<Fr> {
+        self.coefficients.to_vec()
     }
 
     /// Creates a new random polynomial with given length
