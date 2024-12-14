@@ -18,9 +18,10 @@ pub struct Proof {
 pub fn prove(polynomial: Polynomial, challenge: Fr, params: &SRSParams) -> Proof {
     let eval_of_challenge = polynomial.eval(&challenge);
     let mut numerator = polynomial.clone();
-    numerator.coefficients[0] -= eval_of_challenge;
+    let coeffs = numerator.coefficients_mut();
+    assert!(coeffs.len() > 0);
+    coeffs[0] -= eval_of_challenge;
     let denominator = Polynomial::new(vec![challenge.neg(), Fr::ONE]);
-    // Calculating Q(x) or aka quotient polynomial
     let quotient_polynomial = numerator / denominator;
 
     // [P(x)]_1 and [Q(x)]_1
