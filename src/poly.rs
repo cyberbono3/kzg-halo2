@@ -3,7 +3,7 @@ use halo2::{
     halo2curves::{
         bn256::{Fr, G1Affine, G2Affine, G1, G2},
         ff::PrimeField,
-        group::Curve,
+        group::{Curve, Group},
     },
 };
 
@@ -137,22 +137,32 @@ impl<'coeffs> Polynomial<'coeffs> {
         lagrange_polynomial
     }
 
-    /// Makes the commitment for the given polynomial and SRS
-    pub fn commitment_g1(&self, srs_1: &[G1Affine]) -> G1Affine {
+    pub fn commitment<T, S>(&self, srs: &[S]) -> T
+    where
+        T: Group + Default,
+        S: Copy + Mul<Fr, Output = T>,
+    {
+        // TODO address it
+        // assert_eq!(
+        //     self.coefficients.len(),
+        //     srs.len(),
+        //     "SRS length must match the number of coefficients"
+        // );
+
         self.coefficients
             .iter()
-            .zip(srs_1.iter())
-            .fold(G1::default(), |acc, (coeff, srs)| acc + srs * coeff)
-            .to_affine()
+            .zip(srs.iter())
+            .fold(T::default(), |acc, (&coeff, &srs)| acc + srs * coeff)
+    }
+
+    /// Makes the commitment for the given polynomial and SRS
+    pub fn commitment_g1(&self, srs_1: &[G1Affine]) -> G1Affine {
+        self.commitment::<G1, G1Affine>(srs_1).to_affine()
     }
 
     /// Makes the commitment for the given polynomial and SRS
     pub fn commitment_g2(&self, srs_2: &[G2Affine]) -> G2Affine {
-        self.coefficients
-            .iter()
-            .zip(srs_2.iter())
-            .fold(G2::default(), |acc, (coeff, srs)| acc + srs * coeff)
-            .to_affine()
+        self.commitment::<G2, G2Affine>(srs_2).to_affine()
     }
 }
 
@@ -286,30 +296,30 @@ mod tests {
 
     #[test]
     fn test_polynomial_subtraction() {
-        let poly1: Polynomial = fr_vec![5, 7].into(); // 5 + 7x
-        let poly2 = fr_vec![3, 4].into(); // 3 + 4x
+        let poly1: Polynomial = poly_vec![5, 7]; // 5 + 7x
+        let poly2 = poly_vec![3, 4].into(); // 3 + 4x
         let result = poly1 - poly2;
         assert_eq!(result.coefficients, fr_vec![2, 3]); // 2 + 3x
     }
 
     #[test]
     fn test_polynomial_multiplication() {
-        let poly1 = Polynomial::new(fr_vec![1, 1]); // 1 + x
-        let poly2 = Polynomial::new(fr_vec![1, 1]); // 1 + x
+        let poly1 = poly_vec![1, 1]; // 1 + x
+        let poly2 = poly_vec![1, 1]; // 1 + x
         let result = poly1 * poly2;
-        assert_eq!(result.coefficients, fr_vec![1, 2, 1]); // 1 + 2x + x^2
+        assert_eq!(result, poly_vec![1, 2, 1]); // 1 + 2x + x^2
     }
 
     #[test]
     fn test_polynomial_division() {
         // Dividend: x^2 + 3x + 2
-        let poly1: Polynomial = fr_vec![2, 3, 1].into();
+        let poly1: Polynomial = poly_vec![2, 3, 1];
 
         // Divisor: x + 1
-        let poly2 = fr_vec![1, 1].into();
+        let poly2 = poly_vec![1, 1];
 
         // Expected Quotient: x + 2
-        let expected_quotient: Polynomial = fr_vec![2, 1].into();
+        let expected_quotient: Polynomial = poly_vec![2, 1];
 
         // Perform long division
         let result = poly1 / poly2;
