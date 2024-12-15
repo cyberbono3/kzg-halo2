@@ -371,5 +371,51 @@ mod tests {
         assert_eq!(poly1, poly_vec![3, 4, 4]);
     }
 
-    // TODO tesst commitments
+    #[test]
+    fn test_commitment_g1() {
+        let mut rng = thread_rng();
+
+        // Polynomial coefficients: [1, 2, 3]
+        let coefficients = fr_vec![1, 2, 3];
+
+        // SRS points: [P1, P2, P3] - G1Affine random points
+        let srs_1: Vec<G1Affine> = (0..3).map(|_| G1Affine::random(&mut rng)).collect();
+
+        let polynomial = Polynomial::new(coefficients.clone());
+
+        // Compute commitment
+        let commitment = polynomial.commitment_g1(&srs_1);
+
+        // Expected commitment: c1*P1 + c2*P2 + c3*P3
+        let expected_commitment = srs_1
+            .iter()
+            .zip(coefficients.iter())
+            .fold(G1::default(), |acc, (s, c)| acc + s * c);
+
+        assert_eq!(commitment, expected_commitment.to_affine());
+    }
+
+    #[test]
+    fn test_commitment_g2() {
+        let mut rng = thread_rng();
+
+        // Polynomial coefficients: [1, 2, 3]
+        let coefficients = fr_vec![1, 2, 3];
+
+        // SRS points: [P1, P2, P3] - G1Affine random points
+        let srs_2: Vec<G2Affine> = (0..3).map(|_| G2Affine::random(&mut rng)).collect();
+
+        let polynomial: Polynomial = coefficients.clone().into();
+
+        // Compute commitment
+        let commitment = polynomial.commitment_g2(&srs_2);
+
+        // Expected commitment: c1*P1 + c2*P2 + c3*P3
+        let expected_commitment = srs_2
+            .iter()
+            .zip(coefficients.iter())
+            .fold(G2::default(), |acc, (s, c)| acc + s * c);
+
+        assert_eq!(commitment, expected_commitment.to_affine());
+    }
 }
