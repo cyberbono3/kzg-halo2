@@ -17,3 +17,7 @@ criterion = "0.5"  # Replace with the latest version
 [[bench]]
 name = "kzg_bench"
 harness = false
+
+[[bench]]
+name = "commitment_bench"
+harness = false
