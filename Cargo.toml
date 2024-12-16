@@ -21,3 +21,8 @@ harness = false
 [[bench]]
 name = "commitment_bench"
 harness = false
+
+[[bench]]
+name = "kzg_vector_bench"
+harness = false
+
