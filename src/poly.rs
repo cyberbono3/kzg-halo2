@@ -296,8 +296,8 @@ mod tests {
 
     #[test]
     fn test_polynomial_subtraction() {
-        let poly1: Polynomial = poly_vec![5, 7]; // 5 + 7x
-        let poly2 = poly_vec![3, 4].into(); // 3 + 4x
+        let poly1= poly_vec![5, 7]; // 5 + 7x
+        let poly2 = poly_vec![3, 4]; // 3 + 4x
         let result = poly1 - poly2;
         assert_eq!(result.coefficients, fr_vec![2, 3]); // 2 + 3x
     }

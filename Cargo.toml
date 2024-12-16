@@ -3,6 +3,17 @@ name = "halo2_project"
 version = "0.1.0"
 edition = "2021"
 
+[lib]
+name = "halo2_project"  # Name of the library crate
+path = "src/lib.rs"     # Entry point for the library
+
 [dependencies]
 halo2 = { package = "halo2_proofs", git = "https://github.com/privacy-scaling-explorations/halo2", tag = "v2023_04_20" }
 rand = "0.8.5"
+
+[dev-dependencies]
+criterion = "0.5"  # Replace with the latest version
+
+[[bench]]
+name = "kzg_bench"
+harness = false
