@@ -1,5 +1,5 @@
 use criterion::{black_box, criterion_group, criterion_main, Criterion};
-use halo2::halo2curves::bn256::Fr;
+use halo2::{halo2curves::bn256::Fr, arithmetic::Field};
 use rand::thread_rng;
 
 use halo2_project::poly::Polynomial;

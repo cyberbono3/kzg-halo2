@@ -8,6 +8,7 @@ use halo2::halo2curves::bn256::{Fr, G1Affine, G2Affine};
 use halo2::halo2curves::group::Curve;
 use halo2::halo2curves::pairing::PairingCurveAffine;
 
+#[derive(Clone, Debug)]
 pub struct Proof {
     pub(crate) polynomial_commitment: G1Affine,
     pub(crate) quotient_commitment: G1Affine,
