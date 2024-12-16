@@ -2,7 +2,6 @@ use criterion::{criterion_group, criterion_main, Criterion};
 use halo2_project::poly::Polynomial; // Adjust this import to your project structure
 use halo2_project::srs::trusted_setup_generator;
 
-
 fn benchmark_commitment_g1(c: &mut Criterion) {
     let k = 100; // Power of tau for SRS setup
     let params = trusted_setup_generator(k); // Generates the SRS

@@ -81,8 +81,8 @@ pub fn verify(proof: Proof, vector: &[Fr], challenge: &[Fr], params: &SRSParams)
     pair_1 == pair_2
 }
 
-#[cfg(test)]
-mod tests {
+//#[cfg(test)]
+pub mod tests {
     use super::*;
     use crate::srs::trusted_setup_generator;
 
@@ -91,8 +91,7 @@ mod tests {
         halo2curves::{bn256::Fr, ff::PrimeField},
     };
 
-    #[test] //TODO fix it
-    fn kzg_vector_test() {
+    pub fn generate_test_data() -> (Vec<Fr>, Vec<Fr>, SRSParams) {
         // Constructing Structured Reference String that is suitable to the given polynomial
         let k = 123;
         let params = trusted_setup_generator(k);
@@ -106,6 +105,13 @@ mod tests {
 
         // Creating vector indexes as challanges known by both prover and the verifier
         let challenge = fr_vec![0, 1, 2, 3];
+
+        (vector, challenge, params)
+    }
+
+    #[test] //TODO fix it
+    fn kzg_vector_test() {
+        let (vector, challenge, params) = generate_test_data();
 
         let proof = prove(&vector, &challenge, &params);
         let res = verify(proof, &vector, &challenge, &params);
