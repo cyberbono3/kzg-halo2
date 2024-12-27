@@ -109,7 +109,7 @@ pub mod tests {
         (vector, challenge, params)
     }
 
-    #[test] //TODO fix it
+    #[test] 
     fn kzg_vector_test() {
         let (vector, challenge, params) = generate_test_data();
 
