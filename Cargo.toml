@@ -15,14 +15,14 @@ rand = "0.8.5"
 criterion = "0.5"  # Replace with the latest version
 
 [[bench]]
-name = "kzg_bench"
+name = "kzg"
 harness = false
 
 [[bench]]
-name = "commitment_bench"
+name = "commitment"
 harness = false
 
 [[bench]]
-name = "kzg_vector_bench"
+name = "kzg_vector"
 harness = false
 
