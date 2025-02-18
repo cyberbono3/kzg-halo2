@@ -9,11 +9,20 @@ use halo2::{
 
 use rand::thread_rng;
 use std::borrow::Cow;
-use std::ops::{Add, AddAssign, Div, Mul, Sub};
+use std::ops::{Add, AddAssign, Div, Mul, MulAssign, Sub};
 
 /// Macro to create a `Vec<Fr>` using integers.
 ///
-/// # Example
+/// # Examples
+///
+/// ```
+/// # use halo2::halo2curves::bn256::Fr;
+/// # use halo2_project::fr_vec;
+/// let a = fr_vec![42;15];
+/// let b = vec![Fr::from(42);15];
+/// assert_eq!(a, b);
+/// ```
+///
 /// ```
 /// # use halo2::halo2curves::bn256::Fr;
 /// # use halo2_project::fr_vec;
@@ -22,6 +31,9 @@ use std::ops::{Add, AddAssign, Div, Mul, Sub};
 /// ```
 #[macro_export]
 macro_rules! fr_vec {
+    ($x:expr; $n:expr) => {
+        vec![Fr::from($x); $n]
+    };
     ($($x:expr),+ $(,)?) => {
         vec![$(Fr::from($x)),+]
     };
@@ -230,6 +242,26 @@ impl<'coeffs> Mul for Polynomial<'coeffs> {
     }
 }
 
+impl<'coeffs> MulAssign for Polynomial<'coeffs> {
+    fn mul_assign(&mut self, rhs: Self) {
+        let self_len = self.coefficients.len();
+        let rhs_len = rhs.coefficients.len();
+
+        // Allocate space for result of size (degree(self) + degree(rhs)) - 1
+        let mut result = vec![Fr::zero(); self_len + rhs_len - 1];
+
+        // Multiply term by term
+        for i in 0..self_len {
+            for j in 0..rhs_len {
+                result[i + j] += self.coefficients[i] * rhs.coefficients[j];
+            }
+        }
+
+        // Replace self's coefficients with the result
+        *self = Polynomial::new(result);
+    }
+}
+
 impl<'coeffs> Div for Polynomial<'coeffs> {
     type Output = Self;
 
@@ -417,5 +449,15 @@ mod tests {
             .fold(G2::default(), |acc, (s, c)| acc + s * c);
 
         assert_eq!(commitment, expected_commitment.to_affine());
+    }
+
+    #[test]
+    fn test_mul_assign() {
+        // Test: (2 + 0x + 3x^2) * (1 + 2x)
+        // Expected: 2 + 4x + 3x^2 + 6x^3
+        let mut poly1 = poly_vec![2, 0, 3]; // 2 + 0*x + 3*x^2
+        let poly2 = poly_vec![1, 2]; // 1 + 2*x
+        poly1 *= poly2;
+        assert_eq!(poly1, poly_vec![2, 4, 3, 6]);
     }
 }

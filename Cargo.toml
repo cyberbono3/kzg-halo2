@@ -10,6 +10,7 @@ path = "src/lib.rs"     # Entry point for the library
 [dependencies]
 halo2 = { package = "halo2_proofs", git = "https://github.com/privacy-scaling-explorations/halo2", tag = "v2023_04_20" }
 rand = "0.8.5"
+thiserror = "2.0.11"
 
 [dev-dependencies]
 criterion = "0.5"  # Replace with the latest version

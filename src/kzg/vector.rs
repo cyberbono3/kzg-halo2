@@ -4,7 +4,6 @@ use halo2::{
     arithmetic::Field,
     halo2curves::{
         bn256::{Fr, G2Affine},
-        ff::PrimeField,
         group::Curve,
         pairing::PairingCurveAffine,
     },
@@ -21,10 +20,11 @@ pub fn prove(vector: &[Fr], challenge: &[Fr], params: &SRSParams) -> Proof {
     let numerator = polynomial.clone() - Polynomial::lagrange(vector, challenge);
 
     // Constructing zero polynomial Z(x)
-    let mut zero_polynomial = Polynomial::new(vec![Fr::ONE]);
-    for items in challenge.iter() {
-        zero_polynomial = zero_polynomial * Polynomial::new(vec![-items, Fr::ONE]);
-    }
+    let zero_polynomial = challenge
+        .iter()
+        .fold(Polynomial::new(fr_vec!(1)), |acc, &item| {
+            acc * Polynomial::new(vec![-item, Fr::ONE])
+        });
     let denominator = zero_polynomial;
     // Calculating Q(x) or aka quotient polynomial
     let quotient_polynomial = numerator / denominator;
@@ -52,7 +52,7 @@ pub fn verify(proof: Proof, vector: &[Fr], challenge: &[Fr], params: &SRSParams)
     // Constructing zero polynomial Z(x)
     let mut zero_polynomial = Polynomial::new(vec![Fr::ONE]);
     for items in challenge.iter() {
-        zero_polynomial = zero_polynomial * vec![-items, Fr::ONE].into();
+        zero_polynomial *= vec![-items, Fr::ONE].into();
     }
     let zero_polynomial_commitment = zero_polynomial.commitment_g2(&params.g2);
 
@@ -109,7 +109,7 @@ pub mod tests {
         (vector, challenge, params)
     }
 
-    #[test] 
+    #[test]
     fn kzg_vector_test() {
         let (vector, challenge, params) = generate_test_data();
 

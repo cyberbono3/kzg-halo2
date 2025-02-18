@@ -39,7 +39,7 @@ fn benchmark_verify(c: &mut Criterion) {
     let rng = &mut thread_rng();
     let challenge = Fr::random(rng);
 
-    let proof = prove(polynomial, challenge, &params);
+    let proof = prove(polynomial, challenge, &params).unwrap();
 
     c.bench_function("KZG Verify", |b| {
         b.iter(|| {
