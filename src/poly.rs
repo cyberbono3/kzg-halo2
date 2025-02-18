@@ -154,13 +154,6 @@ impl<'coeffs> Polynomial<'coeffs> {
         T: Group + Default,
         S: Copy + Mul<Fr, Output = T>,
     {
-        // TODO address it
-        // assert_eq!(
-        //     self.coefficients.len(),
-        //     srs.len(),
-        //     "SRS length must match the number of coefficients"
-        // );
-
         self.coefficients
             .iter()
             .zip(srs.iter())
