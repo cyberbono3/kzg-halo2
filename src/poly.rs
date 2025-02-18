@@ -114,39 +114,39 @@ impl<'coeffs> Polynomial<'coeffs> {
             .0
     }
 
-    /// This function will build a polynomial from values and given domain.
-    /// Will use lagrange interpolation.
     pub fn lagrange(values: &[Fr], domain: &[Fr]) -> Self {
-        let mut lagrange_polynomial = vec![Fr::ZERO].into();
-        for i in 0..values.len() {
-            let mut mul_numerator: Polynomial = vec![Fr::ONE].into();
-            let mut mul_denominator = Fr::ONE;
+        // Ensure inputs match in length.
+        assert_eq!(
+            values.len(),
+            domain.len(),
+            "Domain and values must have the same length"
+        );
 
-            for j in 0..values.len() {
-                if i == j {
-                    continue;
-                }
-                let numerator: Polynomial =
-                    vec![Fr::from_u128(j.try_into().unwrap()).neg(), Fr::ONE].into();
-                let denominator = domain[i] - domain[j];
-                mul_numerator = mul_numerator * numerator.clone();
-                mul_denominator *= denominator;
-            }
+        // Start with the "zero" polynomial for accumulation.
+        let zero_poly = Polynomial::new(vec![Fr::ZERO]);
 
-            let numerator =
-                mul_numerator * Polynomial::new(vec![mul_denominator.invert().unwrap()]);
+        (0..values.len())
+            .map(|i| {
+                let (mut numerator, denominator) = (0..values.len()).filter(|&j| j != i).fold(
+                    (Polynomial::new(vec![Fr::ONE]), Fr::ONE),
+                    |(num_poly, denom_acc), j| {
+                        let factor_poly = Polynomial::new(vec![
+                            -domain[j], // constant term = -domain[j]
+                            Fr::ONE,    // x^1 coefficient
+                        ]);
+                        let factor_scalar = domain[i] - domain[j];
+                        (num_poly * factor_poly, denom_acc * factor_scalar)
+                    },
+                );
 
-            let res = Polynomial::new(
+                let denom_inv = denominator.invert().expect("Non-invertible denominator");
+                let scaling_factor = values[i] * denom_inv;
+                numerator *= Polynomial::new(vec![scaling_factor]);
+
                 numerator
-                    .coefficients
-                    .iter()
-                    .map(|x| x * values[i])
-                    .collect(),
-            );
-
-            lagrange_polynomial += res;
-        }
-        lagrange_polynomial
+            })
+            // Sum all these basis polynomials into one final interpolation polynomial.
+            .fold(zero_poly, |acc, poly| acc + poly)
     }
 
     pub fn commitment<T, S>(&self, srs: &[S]) -> T
@@ -459,5 +459,35 @@ mod tests {
         let poly2 = poly_vec![1, 2]; // 1 + 2*x
         poly1 *= poly2;
         assert_eq!(poly1, poly_vec![2, 4, 3, 6]);
+    }
+
+    #[test]
+    fn test_polynomial_lagrange_basic() {
+        // domain: x=0,1,2; values: f(0)=2, f(1)=5, f(2)=10
+        let domain = fr_vec![0, 1, 2];
+        let values = fr_vec![2, 5, 10];
+        let poly = Polynomial::lagrange(&values, &domain);
+
+        // Verify that for each point in the domain, the polynomial yields the expected value
+        for (i, &x) in domain.iter().enumerate() {
+            assert_eq!(poly.eval(&x), values[i]);
+        }
+    }
+
+    #[test]
+    fn test_polynomial_lagrange_single_point() {
+        // domain: x=7; value: f(7)=42
+        let domain = fr_vec![7];
+        let values = fr_vec![42];
+        let poly = Polynomial::lagrange(&values, &domain);
+
+        // Evaluate the polynomial at domain[0] => should be 42
+        assert_eq!(poly.eval(&domain[0]), values[0]);
+
+        // Evaluate at some arbitrary points => should still be 42
+        let test_points = fr_vec![0, 1, 13, 999];
+        for point in test_points {
+            assert_eq!(poly.eval(&point), values[0]);
+        }
     }
 }
