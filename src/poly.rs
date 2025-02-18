@@ -210,7 +210,7 @@ impl<'coeffs> AddAssign for Polynomial<'coeffs> {
     }
 }
 
-impl<'coeffs> Sub for Polynomial<'coeffs> {
+impl<'coeffs> Sub for Polynomial<'_> {
     type Output = Self;
     fn sub(self, rhs: Self) -> Self {
         let mut big = self.coefficients.to_vec().max(rhs.coefficients.to_vec());
@@ -222,7 +222,7 @@ impl<'coeffs> Sub for Polynomial<'coeffs> {
     }
 }
 
-impl<'coeffs> Mul for Polynomial<'coeffs> {
+impl<'coeffs> Mul for Polynomial<'_> {
     type Output = Self;
     fn mul(self, rhs: Self) -> Self {
         let mut result = vec![Fr::zero(); self.coefficients.len() + rhs.coefficients.len() - 1];
@@ -235,7 +235,7 @@ impl<'coeffs> Mul for Polynomial<'coeffs> {
     }
 }
 
-impl<'coeffs> MulAssign for Polynomial<'coeffs> {
+impl<'coeffs> MulAssign for Polynomial<'_> {
     fn mul_assign(&mut self, rhs: Self) {
         let self_len = self.coefficients.len();
         let rhs_len = rhs.coefficients.len();
@@ -255,7 +255,7 @@ impl<'coeffs> MulAssign for Polynomial<'coeffs> {
     }
 }
 
-impl<'coeffs> Div for Polynomial<'coeffs> {
+impl<'coeffs> Div for Polynomial<'_> {
     type Output = Self;
 
     fn div(self, rhs: Self) -> Self {
